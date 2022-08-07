@@ -95,27 +95,6 @@ validations = [
         "sub": '',
         "reason": "Throwaway reference"
     },
-    # {
-    #     "regex": re.compile(
-    #             r"""last night's dreams|
-    #             (Last night)?\s?I?\s?dreamt[\s]?(that|about)?|
-    #             I dreamt (about)?|
-    #             My dreams? (starts|started|begins|begun)|
-    #             I.+?remember (a|my) dreams?|
-    #             (My)?\s?Dream:?|
-    #             In (my|the) dream|
-    #             I?\s?(had|saw).+?dreams?|
-    #             (In)? my (last )?dreams?|
-    #             I?\s?(just)?\s?had a.*?dream|
-    #             (ok|right)?\s?so I dreamed|
-    #             (For|as) context.+?dreams?|
-    #             It was a.+?dream|
-    #             (today)?\s?i wanted to tell you about my dreams?"""
-    #             , flags=re.I|re.M|re.X),
-    #     "sub": '',
-    #     # "force_notify": True, #whg68u
-    #     "reason": "Removed statement of having a dream"
-    # },
     {
         "regex": re.compile(r"(^|[.,!?]).*?(w[ao]ke|aw[ao]ken) ?(up)?.*?([,.!?\r\n]|$)", flags=re.I|re.M),
         "sub": '',
