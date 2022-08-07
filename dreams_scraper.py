@@ -6,41 +6,9 @@ import re
 from psaw import PushshiftAPI
 import unicodedata, sys
 from textblob import TextBlob
+import replacements as rep
 
 api = PushshiftAPI()
-
-## Constants
-# Remove fancy chars from the text
-chars = {
-    '‘' : "'",
-    '’' : "'",
-    '“' : '"',
-    '”' : '"',
-    '…' : '...',
-    '&amp;' : 'and',
-}
-# Remove emojis from the text
-emoji_pattern = re.compile("["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-        u"\U00002500-\U00002BEF"  # chinese char
-        u"\U00002702-\U000027B0"
-        u"\U00002702-\U000027B0"
-        u"\U000024C2-\U0001F251"
-        u"\U0001f926-\U0001f937"
-        u"\U00010000-\U0010ffff"
-        u"\u2640-\u2642"
-        u"\u2600-\u2B55"
-        u"\u200d"
-        u"\u23cf"
-        u"\u23e9"
-        u"\u231a"
-        u"\ufe0f"  # dingbats
-        u"\u3030"
-                      "]+", re.UNICODE)
-
 
 ## Adjust to your liking
 # Which subreddit to process
@@ -58,13 +26,16 @@ save_validation_copies = False
 # If test is removed for being irrelevant, print the reasons it was removed in the console at runtime
 print_validation_reasons = False
 # Set to false to stop spelling autocorrect on text. This is a very slow process and will delay the processing very much! (10x or more)
-spellcheck = True
+spellcheck = False
 # The minimum amount of words the post should have (post-processing) in order to keep it
 min_word_count = 100
 # How many copies of each post to store, depending on its reddit score
 duplicates = {
+    # This means we do not save downvoted posts. Increase the first key to 1 or more to only store texts with a score threshold over that amount.
     0: 0,
+    # This means we save one copy if the post has 1-3 upvotes
     3: 1,
+    # 4-5 upvotes etc...
     5: 2,
     10: 3,
     25: 4,
@@ -72,6 +43,8 @@ duplicates = {
     75: 6,
     100: 7,
 }
+
+skipped = 0
 
 
 validations = [
@@ -156,12 +129,11 @@ validations = [
     },
 ]
 
-def replace_chars(match):
-    char = match.group(0)
-    return chars[char]
 
 def save_skipped(post, reason):
-    print(f"Skipped {post.id}: {reason}.")
+    global skipped
+    skipped += 1
+    print(f"{skipped} Skipped {post.id}: {reason}.")
     try:
         filepath = f"{skipped_dir}/{subreddit}-{post.id}.txt"
         with open(f"{filepath}", 'w') as file:
@@ -206,6 +178,7 @@ try:
 #     selftext = re.sub(r"(^|[.,!?]).*?(w[ao]ke|aw[ao]ken) ?(up)?.*?[.,!?\r\n]", '', t, flags=re.I|re.M)
 #     print(selftext)
 #     sys.exit()
+    skipped_counts = {}
     for subreddit in subreddits:
         one_entry = list(api.search_submissions(subreddit=subreddit,filter=['id','title', 'selftext', 'link_flair_text'],limit=1))
         continue_point = one_entry[0].created_utc + 1
@@ -224,28 +197,22 @@ try:
                 selftext = post.selftext
                 if re.search(r"[\s](poll|questionnaire|Question:)[\s]", selftext, flags=re.I|re.M):
                     save_skipped(post, "Appears to be a poll")
+                    skipped_counts['poll'] = skipped_counts.get('poll',0) + 1
                     continue
                 if re.search(r"[\s](payment|I'm a medium)[\s]", selftext, flags=re.I|re.M):
                     save_skipped(post, "Appears to be a merchant")
+                    skipped_counts['merchant'] = skipped_counts.get('merchant',0) + 1
                     continue
                 if re.search(r"[\s](rape|molestation|sexual assault)[\s]", selftext, flags=re.I|re.M):
                     save_skipped(post, "Appears to be about sexual abuse")
+                    skipped_counts['sexual abuse'] = skipped_counts.get('sexual abuse',0) + 1
                     continue
                 if re.search(r"NSFW", selftext, flags=re.I|re.M):
                     save_skipped(post, "Removed NSFW")
+                    skipped_counts['NSFW'] = skipped_counts.get('NSFW',0) + 1
                     continue
-                selftext = re.sub(r'(' + '|'.join(chars.keys()) + ')', replace_chars, selftext)
-                selftext = emoji_pattern.sub('', selftext)
-                selftext = selftext.replace("\r", "\n") #unify newline style
                 selftext = validate_text(post,selftext)
-                selftext = re.sub(r"[^\S\n]+", " ", selftext, flags=re.M) #collapse multiple whitespace
-                selftext = re.sub(r" +,", ",", selftext, flags=re.M) #remove whitespace preceding commas
-                selftext = re.sub(r" +([,!])", "\g<1>", selftext, flags=re.M) #remove whitespace preceding a comma or bang
-                selftext = re.sub(r"^ +([^ ])", "\g<1>", selftext, flags=re.M) #remove leading whitespace
-                selftext = re.sub(r"([^ ]) +$", "\g<1>", selftext, flags=re.M) #remove trailing whitespace
-                selftext = re.sub(r"^\n+", "", selftext) #remove initial empty lines
-                selftext = re.sub(r"\n+", "\n", selftext) #remove other empty lines
-                selftext = re.sub(r"^[^a-z0-9]+$", "***", selftext, flags=re.M) #replace fully-non-alphanumeric lines with chapter breaks
+                selftext = rep.ai_training_format(selftext)
                 if len(selftext.split()) < min_word_count:
                     continue
                 if spellcheck:
@@ -257,7 +224,8 @@ try:
                             copies = duplicates[v]
                             break
                     if copies == 0:
-                        save_skipped(post, "0 votes")
+                        save_skipped(post, "lower than minimum score")
+                        skipped_counts['low score'] = skipped_counts.get('low score',0) + 1
                     subiter = 1
                     # print(f"saving {copies} copies of {post.id} for {post.score} score")
                     for iter in range(copies):
@@ -267,7 +235,10 @@ try:
                             file.write(f"{selftext}")
                 except UnicodeEncodeError:
                     print(f"failed to parse post with id {post.id}")
-
+    filepath = f"{skipped_dir}/_skipped_counts.txt"
+    with open(f"{filepath}", 'w') as file:
+        file.write(f"{skipped_counts}")
+    print(f"Skipped Counts: {skipped_counts}")
     # while submission_count > 0: #Check if we're still doing useful things
     #     #Obtain new posts
     #     submissions = list(api.search_submissions(before=deadline,subreddit='piracy',filter=['url','author','title','subreddit'],limit=10))
