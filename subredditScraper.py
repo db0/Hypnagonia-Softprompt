@@ -7,6 +7,9 @@ from psaw import PushshiftAPI
 import unicodedata, sys
 from textblob import TextBlob
 
+api = PushshiftAPI()
+
+## Constants
 # Remove fancy chars from the text
 chars = {
     '‘' : "'",
@@ -38,16 +41,17 @@ emoji_pattern = re.compile("["
         u"\u3030"
                       "]+", re.UNICODE)
 
+
+## Adjust to your liking
 # Which subreddit to process
 subreddits = ['Dreams']
 # The directory to store post-processes texts
-directory = "./output"
+directory = "./output" # Create this
 # The directory to store skipped texts
-skipped_dir = "./skipped"
+skipped_dir = "./skipped" # Create this
 # The directory to store original texts (pre-validation)
-validations_dir = "./validations"
+validations_dir = "./validations" # Create this
 
-api = PushshiftAPI()
 submission_count = 1000 # Don't touch
 # If text is removed for being irrelevant to our training, save a copy of the original text with the reasons
 save_validation_copies = False
@@ -55,7 +59,8 @@ save_validation_copies = False
 print_validation_reasons = False
 # Set to false to stop spelling autocorrect on text. This is a very slow process and will delay the processing very much! (10x or more)
 spellcheck = True
-
+# The minimum amount of words the post should have (post-processing) in order to keep it
+min_word_count = 100
 # How many copies of each post to store, depending on its reddit score
 duplicates = {
     0: 0,
@@ -233,18 +238,15 @@ try:
                 selftext = emoji_pattern.sub('', selftext)
                 selftext = selftext.replace("\r", "\n") #unify newline style
                 selftext = validate_text(post,selftext)
-                selftext = re.sub(r"[^\S\n]+", " ", selftext, flags=re.MULTILINE) #collapse multiple whitespace
-                selftext = re.sub(r" +,", ",", selftext) #remove whitespace preceding commas
-                selftext = re.sub(r" +([,!])", "\g<1>", selftext) #remove whitespace preceding a comma or bang
-                selftext = re.sub(r"^ +([^ ])", "\g<1>", selftext, flags=re.MULTILINE) #remove leading whitespace
-                selftext = re.sub(r"([^ ]) +$", "\g<1>", selftext, flags=re.MULTILINE) #remove trailing whitespace
+                selftext = re.sub(r"[^\S\n]+", " ", selftext, flags=re.M) #collapse multiple whitespace
+                selftext = re.sub(r" +,", ",", selftext, flags=re.M) #remove whitespace preceding commas
+                selftext = re.sub(r" +([,!])", "\g<1>", selftext, flags=re.M) #remove whitespace preceding a comma or bang
+                selftext = re.sub(r"^ +([^ ])", "\g<1>", selftext, flags=re.M) #remove leading whitespace
+                selftext = re.sub(r"([^ ]) +$", "\g<1>", selftext, flags=re.M) #remove trailing whitespace
                 selftext = re.sub(r"^\n+", "", selftext) #remove initial empty lines
                 selftext = re.sub(r"\n+", "\n", selftext) #remove other empty lines
-                selftext = re.sub(r"^[^a-z0-9]+$", "***", selftext, flags=re.MULTILINE) #replace fully-non-alphanumeric lines with chapter breaks
-                if len(selftext.split()) < 50:
-                    continue
-                if len(selftext.split()) < 100:
-                    # save_skipped(post, "low wordcount")
+                selftext = re.sub(r"^[^a-z0-9]+$", "***", selftext, flags=re.M) #replace fully-non-alphanumeric lines with chapter breaks
+                if len(selftext.split()) < min_word_count:
                     continue
                 if spellcheck:
                     selftext = TextBlob(selftext).correct()
