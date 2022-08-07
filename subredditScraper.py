@@ -139,7 +139,6 @@ validations = [
         "avoid_store": True,
     },
     {
-        # People REALLY like repeating the word 'dream' in many creative ways
         "regex": re.compile(r"(^|[,.!?\r\n]).*?(dream|nightmare)s?.*?(?!dream)([,.!?\r\n]|$)", flags=re.I),
         "sub": '',
         "reason": "Dream References",
