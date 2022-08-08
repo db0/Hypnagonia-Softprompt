@@ -165,19 +165,6 @@ def validate_text(post, selftext):
 
 
 try:
-#     t = """Well I'm make this very easy to understand ; my soul was really weeping because I struggle in real life as well.
-# A strange man in a suit and hat that was black sat next to me at this job, not scary but quite calming and sincere.. he kept comforting me and telling me he knew and understood all my pain, and that my soul should be set free..
-# For some reason I accepted s grant, and next tng you know I'm in s office and he pulls out and wad of money and checks for me, I felt so strange afterwards.
-# my boyfriend asked me if I was okay, I couldn't answer m, I just said I'm fine and walked around my house like I didn't recognize it ...
-# I went to my moms, and our family dog aggressively barked and growled at me! It made me feel so sad, but yet again I couldn't let out my emotions
-# My mom knew sometng was wrong.. she looked in to my eyes and knew what I did, but yet she comforted me without saying a word, we sat down, and held eachother..
-# The last tng I can remember is my mother telling me no matter what she will make this my best life ever.. and she will do whatever to make sure I enjoy it..
-# I woke up crying and it felt so real I was terrified, it's so bizarre because I didn't get to use any of the money, my heart chose to go to my family first and I have no idea why..
-# Is someone or sometng trying to show me the consequences of some sort ?"""
-#     print(t)
-#     selftext = re.sub(r"(^|[.,!?]).*?(w[ao]ke|aw[ao]ken) ?(up)?.*?[.,!?\r\n]", '', t, flags=re.I|re.M)
-#     print(selftext)
-#     sys.exit()
     skipped_counts = {}
     for subreddit in subreddits:
         one_entry = list(api.search_submissions(subreddit=subreddit,filter=['id','title', 'selftext', 'link_flair_text'],limit=1))
