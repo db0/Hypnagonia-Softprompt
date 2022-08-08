@@ -106,15 +106,32 @@ validations = [
         # "force_notify": True,
     },
     {
-        "regex": re.compile(r"Thank you for reading", flags=re.I),
+        "regex": re.compile(r"Thank you for reading", flags=re.I|re.M),
         "sub": '',
         "reason": "Thanks",
     },
     {
-        "regex": re.compile(r" ts ", flags=re.I),
+        "regex": re.compile(r" ts ", flags=re.I|re.M),
         "sub": ' this ',
         "reason": "lazy typo",
         "avoid_store": True,
+    },
+    {
+        "regex": re.compile(r" tnk ", flags=re.I|re.M),
+        "sub": ' think ',
+        "reason": "lazy typo",
+        "avoid_store": True,
+    },
+    {
+        "regex": re.compile(r" tngs ", flags=re.I|re.M),
+        "sub": ' things ',
+        "reason": "lazy typo",
+        "avoid_store": True,
+    },
+    {
+        "regex": re.compile(r"\S*https?:\S*", flags=re.I|re.M),
+        "sub": '',
+        "reason": "URL",
     },
     {
         "regex": re.compile(r"(^|[,.!?\r\n]).*?(dream|nightmare)s?.*?(?!dream)([,.!?\r\n]|$)", flags=re.I),

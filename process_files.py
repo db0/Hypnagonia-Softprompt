@@ -1,8 +1,8 @@
 import os
 import replacements as rep
 
-input_path = r'C:\Google Drive\Projects\Hypnagonia Gdrive\softprompt\books\manually_processed'
-output_path =r'C:\Google Drive\Projects\Hypnagonia Gdrive\softprompt\books\processed'
+input_path = r'C:\Google Drive\Projects\Hypnagonia Gdrive\softprompt\magazines\manually_processesed'
+output_path =r'C:\Google Drive\Projects\Hypnagonia Gdrive\softprompt\magazines\processed'
 for root, directories, file in os.walk(input_path):
     for file in file:
         print(file)
