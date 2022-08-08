@@ -231,7 +231,7 @@ try:
                     for iter in range(copies):
                         filepath = f"{directory}/{subreddit}-{post.id}-{subiter}.txt"
                         subiter += 1
-                        with open(f"{filepath}", 'w') as file:
+                        with open(f"{filepath}", 'w', encoding='utf-8') as file:
                             file.write(f"{selftext}<|endoftext|>")
                 except UnicodeEncodeError:
                     print(f"failed to parse post with id {post.id}")
