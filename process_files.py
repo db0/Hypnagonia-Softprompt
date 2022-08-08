@@ -12,6 +12,6 @@ for root, directories, file in os.walk(input_path):
         input = open(os.path.join(root,file), encoding='utf-8')
         for line in input:
            output.write(rep.ai_training_format(line))
-        output.write('\n<|endoftext|>')
+        output.write('<|endoftext|>')
         input.close()
         output.close()
