@@ -48,5 +48,5 @@ def ai_training_format(text):
     text = re.sub(r"([^ ]) +$", "\g<1>", text, flags=re.M) #remove trailing whitespace
     text = re.sub(r"^\n+", "", text) #remove initial empty lines
     text = re.sub(r"\n+", "\n", text) #remove other empty lines
-    text = re.sub(r"^[^a-z0-9⁂]+$", "***", text, flags=re.M) #replace fully-non-alphanumeric lines with chapter breaks
+    text = re.sub(r"^[^a-z0-9\n]+$", "***", text, flags=re.M) #replace fully-non-alphanumeric lines with chapter breaks
     return(text)
